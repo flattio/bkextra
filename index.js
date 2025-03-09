@@ -62,6 +62,20 @@ client.on('messageCreate', async (message) => {
     const args = message.content.slice(PREFIX.length).trim().split(/ +/);
     const command = args.shift().toLowerCase();
 
+     // Add this to detect a keyword and react with a checkmark emoji
+     const keyword = "checkmark"; // Replace with your desired keyword or phrase
+
+     // Check if the message contains the keyword
+     if (message.content.toLowerCase().includes(keyword.toLowerCase())) {
+         try {
+             // React with a checkmark emoji
+             await message.react('✅');
+         } catch (error) {
+             console.error('Error reacting to message:', error);
+         }
+     }
+ });
+
     if (command === "say") {
         if (!args[0] || !args[1]) {
             return message.reply("Usage: `bke!say <#channel> | <channel-id> <message>`");
