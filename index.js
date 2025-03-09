@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } = require('discord.js');
 
+// Initialize client
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -9,14 +10,12 @@ const client = new Client({
     ]
 });
 
-const PREFIX = "bke!";
-const TOKEN = process.env.DISCORD_TOKEN; // Replace with your bot token
-const CLIENT_ID = process.env.CLIENT_ID; // Replace with your bot's client ID
-const GUILD_ID = process.env.GUILD_ID; // Replace with your server's ID
+// Environment variables (make sure to define them in your .env file)
+const TOKEN = process.env.DISCORD_TOKEN;
+const CLIENT_ID = process.env.CLIENT_ID;
+const GUILD_ID = process.env.GUILD_ID;
 
-const allowedRoles = ["1121590212011773962", "1091441098330746919"]; // Replace with actual role IDs
-
-// Register the slash commands
+// Slash Commands to register
 const commands = [
     new SlashCommandBuilder()
         .setName('say')
@@ -34,110 +33,55 @@ const commands = [
         .setDescription('Replies with Pong and the bot\'s ping in ms!'),
     new SlashCommandBuilder()
         .setName('hi')
-        .setDescription('Replies with "hi" in an ephemeral message') // New /hi command
+        .setDescription('Replies with "hi" in an ephemeral message')
 ].map(command => command.toJSON());
 
-// Deploy commands
+// Register commands
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 async function deployCommands() {
     try {
+        console.log('Registering slash commands...');
         await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
-        console.log("Slash commands registered!");
+        console.log('Slash commands registered!');
     } catch (error) {
-        console.error(error);
+        console.error('Error deploying commands:', error);
     }
 }
 
+// Once the bot is ready, deploy commands and set presence
 client.once('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
     deployCommands();
-    // Set a custom status
     client.user.setPresence({
         activities: [{ name: 'BKBot but extra', type: 4 }], // Type 4 is "Custom Status"
         status: 'online' // Options: 'online', 'idle', 'dnd', 'invisible'
     });
 });
 
-// Prefix Command Handler
-client.on('messageCreate', async (message) => {
-    if (message.author.bot || !message.content.startsWith(PREFIX)) return;
-
-    const args = message.content.slice(PREFIX.length).trim().split(/ +/);
-    const command = args.shift().toLowerCase();
-
-    // Add this to detect a keyword and react with a checkmark emoji
-    const keyword = "checkmark"; // Replace with your desired keyword or phrase
-
-    if (message.content.toLowerCase().includes(keyword.toLowerCase())) {
-        try {
-            await message.react('✅');
-        } catch (error) {
-            console.error('Error reacting to message:', error);
-        }
-    }
-
-    if (command === "say") {
-        if (!args[0] || !args[1]) {
-            return message.reply("Usage: `bke!say <#channel> | <channel-id> <message>`");
-        }
-
-        const hasRole = message.member.roles.cache.some(role => allowedRoles.includes(role.id));
-        if (!hasRole) {
-            return message.reply("You do not have permission to use this command.");
-        }
-
-        let channel;
-        const channelArg = args.shift();
-        const mentionMatch = channelArg.match(/^<#(\d+)>$/);
-        channel = mentionMatch ? client.channels.cache.get(mentionMatch[1]) : client.channels.cache.get(channelArg);
-
-        if (!channel) {
-            return message.reply("Invalid channel. Mention a channel or provide a valid channel ID.");
-        }
-
-        try {
-            await channel.send(args.join(" "));
-            message.reply("Message sent!");
-        } catch (error) {
-            console.error(error);
-            message.reply("Failed to send the message.");
-        }
-    } else if (command === "ping") {
-        const ping = Date.now() - message.createdTimestamp;
-        message.reply(`Pong! Latency is ${ping}ms.`);
-    }
-});
-
-// Slash Command Handler
+// Handle interactions (commands)
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) return;
 
-    if (interaction.commandName === "say") {
-        const channel = interaction.options.getChannel("channel");
-        const text = interaction.options.getString("message");
-
-        const hasRole = interaction.member.roles.cache.some(role => allowedRoles.includes(role.id));
-        if (!hasRole) {
-            return interaction.reply({ content: "You do not have permission to use this command.", flags: 64 });
+    try {
+        if (interaction.commandName === 'say') {
+            const channel = interaction.options.getChannel('channel');
+            const message = interaction.options.getString('message');
+            await channel.send(message);
+            await interaction.reply({ content: 'Message sent!', ephemeral: true });
+        } else if (interaction.commandName === 'ping') {
+            const ping = Date.now() - interaction.createdTimestamp;
+            await interaction.reply(`Pong! Latency is ${ping}ms.`);
+        } else if (interaction.commandName === 'hi') {
+            await interaction.reply({
+                content: 'hi',
+                ephemeral: true // Sends an ephemeral response, visible only to the user who invoked the command
+            });
         }
-
-        try {
-            await channel.send(text);
-            interaction.reply({ content: "Message sent!", flags: 64 });
-        } catch (error) {
-            console.error(error);
-            interaction.reply({ content: "Failed to send the message.", flags: 64 });
-        }
-    } else if (interaction.commandName === "ping") {
-        const ping = Date.now() - interaction.createdTimestamp;
-        interaction.reply(`Ping! Latency is ${ping}ms.`);
-    } else if (interaction.commandName === "hi") {
-        // New Slash Command: /hi
-        await interaction.reply({
-            content: 'hi',
-            ephemeral: true // Ephemeral message, visible only to the user
-        });
+    } catch (error) {
+        console.error('Error handling command:', error);
+        await interaction.reply({ content: 'There was an error while processing your command!', ephemeral: true });
     }
 });
 
+// Log in to Discord
 client.login(TOKEN);
