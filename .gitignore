@@ -1,0 +1,14 @@
+# Ignore .env file to keep sensitive data safe
+.env
+
+# Ignore node_modules (prevents pushing installed dependencies)
+node_modules/
+
+# Ignore logs
+*.log
+logs/
+npm-debug.log*
+
+# Ignore cache and temp files
+.DS_Store
+*.swp
