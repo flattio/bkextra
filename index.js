@@ -108,7 +108,7 @@ client.on('messageCreate', async (message) => {
         const ping = Date.now() - message.createdTimestamp;
         message.reply(`Pong! Latency is ${ping}ms.`);
     }
-
+});
 
 // Slash Command Handler
 client.on('interactionCreate', async (interaction) => {
