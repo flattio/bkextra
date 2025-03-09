@@ -133,7 +133,7 @@ client.on('interactionCreate', async (interaction) => {
     } else if (interaction.commandName === "ping") {
         // Slash Command: ping
         const ping = Date.now() - interaction.createdTimestamp;
-        interaction.reply(`Ping! Latency is ${ping}ms.`);
+        interaction.reply(`Pingfsddfsdfsdfs! Latency is ${ping}ms.`);
     }
 });
 
