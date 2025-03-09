@@ -31,7 +31,10 @@ const commands = [
                 .setRequired(true)),
     new SlashCommandBuilder()
         .setName('ping')
-        .setDescription('Replies with Pong and the bot\'s ping in ms!') // Slash command for ping
+        .setDescription('Replies with Pong and the bot\'s ping in ms!'),
+    new SlashCommandBuilder()
+        .setName('hi')
+        .setDescription('Replies with "hi" in an ephemeral message') // New /hi command
 ].map(command => command.toJSON());
 
 // Deploy commands
@@ -48,7 +51,7 @@ async function deployCommands() {
 client.once('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
     deployCommands();
-      // Set a custom status
+    // Set a custom status
     client.user.setPresence({
         activities: [{ name: 'BKBot but extra', type: 4 }], // Type 4 is "Custom Status"
         status: 'online' // Options: 'online', 'idle', 'dnd', 'invisible'
@@ -56,7 +59,7 @@ client.once('ready', () => {
 });
 
 // Prefix Command Handler
-client.on('messageCreate', async (message) => { // Make this async
+client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.content.startsWith(PREFIX)) return;
 
     const args = message.content.slice(PREFIX.length).trim().split(/ +/);
@@ -65,7 +68,6 @@ client.on('messageCreate', async (message) => { // Make this async
     // Add this to detect a keyword and react with a checkmark emoji
     const keyword = "checkmark"; // Replace with your desired keyword or phrase
 
-    // Check if the message contains the keyword
     if (message.content.toLowerCase().includes(keyword.toLowerCase())) {
         try {
             await message.react('✅');
@@ -79,7 +81,6 @@ client.on('messageCreate', async (message) => { // Make this async
             return message.reply("Usage: `bke!say <#channel> | <channel-id> <message>`");
         }
 
-        // Check for required role
         const hasRole = message.member.roles.cache.some(role => allowedRoles.includes(role.id));
         if (!hasRole) {
             return message.reply("You do not have permission to use this command.");
@@ -102,12 +103,10 @@ client.on('messageCreate', async (message) => { // Make this async
             message.reply("Failed to send the message.");
         }
     } else if (command === "ping") {
-        // Prefix Command: ping
         const ping = Date.now() - message.createdTimestamp;
         message.reply(`Pong! Latency is ${ping}ms.`);
     }
 });
-
 
 // Slash Command Handler
 client.on('interactionCreate', async (interaction) => {
@@ -117,7 +116,6 @@ client.on('interactionCreate', async (interaction) => {
         const channel = interaction.options.getChannel("channel");
         const text = interaction.options.getString("message");
 
-        // Check for required role
         const hasRole = interaction.member.roles.cache.some(role => allowedRoles.includes(role.id));
         if (!hasRole) {
             return interaction.reply({ content: "You do not have permission to use this command.", flags: 64 });
@@ -131,9 +129,14 @@ client.on('interactionCreate', async (interaction) => {
             interaction.reply({ content: "Failed to send the message.", flags: 64 });
         }
     } else if (interaction.commandName === "ping") {
-        // Slash Command: ping
         const ping = Date.now() - interaction.createdTimestamp;
-        interaction.reply(`Pingfsddfsdfsdfs! Latency is ${ping}ms.`);
+        interaction.reply(`Ping! Latency is ${ping}ms.`);
+    } else if (interaction.commandName === "hi") {
+        // New Slash Command: /hi
+        await interaction.reply({
+            content: 'hi',
+            ephemeral: true // Ephemeral message, visible only to the user
+        });
     }
 });
 
