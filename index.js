@@ -11,8 +11,8 @@ const client = new Client({
 
 const PREFIX = "bke!";
 const TOKEN = process.env.DISCORD_TOKEN; // Replace with your bot token
-const CLIENT_ID = "1347447473014046842"; // Replace with your bot's client ID
-const GUILD_ID = "1091441097915506841"; // Replace with your server's ID
+const CLIENT_ID = process.env.CLIENT_ID; // Replace with your bot's client ID
+const GUILD_ID = process.env.GUILD_ID; // Replace with your server's ID
 
 const allowedRoles = ["1121590212011773962", "1091441098330746919"]; // Replace with actual role IDs
 
