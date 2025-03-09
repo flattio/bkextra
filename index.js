@@ -62,18 +62,51 @@ client.on('messageCreate', async (message) => {
     const args = message.content.slice(PREFIX.length).trim().split(/ +/);
     const command = args.shift().toLowerCase();
 
-     // Add this to detect a keyword and react with a checkmark emoji
-     const keyword = "checkmark"; // Replace with your desired keyword or phrase
+    // Add this to detect a keyword and react with a checkmark emoji
+    const keyword = "checkmark"; // Replace with your desired keyword or phrase
 
-     // Check if the message contains the keyword
-     if (message.content.toLowerCase().includes(keyword.toLowerCase())) {
-         try {
-             // React with a checkmark emoji
-             await message.react('✅');
-         } catch (error) {
-             console.error('Error reacting to message:', error);
-         }
-     }
+    // Check if the message contains the keyword
+    if (message.content.toLowerCase().includes(keyword.toLowerCase())) {
+        try {
+            // React with a checkmark emoji
+            await message.react('✅');
+        } catch (error) {
+            console.error('Error reacting to message:', error);
+        }
+    }
+
+    if (command === "say") {
+        if (!args[0] || !args[1]) {
+            return message.reply("Usage: `bke!say <#channel> | <channel-id> <message>`");
+        }
+
+        // Check for required role
+        const hasRole = message.member.roles.cache.some(role => allowedRoles.includes(role.id));
+        if (!hasRole) {
+            return message.reply("You do not have permission to use this command.");
+        }
+
+        let channel;
+        const channelArg = args.shift();
+        const mentionMatch = channelArg.match(/^<#(\d+)>$/);
+        channel = mentionMatch ? client.channels.cache.get(mentionMatch[1]) : client.channels.cache.get(channelArg);
+
+        if (!channel) {
+            return message.reply("Invalid channel. Mention a channel or provide a valid channel ID.");
+        }
+
+        try {
+            await channel.send(args.join(" "));
+            message.reply("Message sent!");
+        } catch (error) {
+            console.error(error);
+            message.reply("Failed to send the message.");
+        }
+    } else if (command === "ping") {
+        // Prefix Command: ping
+        const ping = Date.now() - message.createdTimestamp;
+        message.reply(`Pong! Latency is ${ping}ms.`);
+    }
  });
 
     if (command === "say") {
